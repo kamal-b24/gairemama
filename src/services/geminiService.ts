@@ -1,0 +1,55 @@
+import { GoogleGenAI, Type } from "@google/genai";
+import { UserProfile } from "../types";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function searchUserProfile(username: string): Promise<UserProfile> {
+  // Demo mode for testing without API key if needed
+  if (username.toLowerCase() === "demo") {
+    return {
+      username: "demo_user",
+      displayName: "Demo User",
+      profilePicture: "https://picsum.photos/seed/demo/200",
+      followerCount: 12500,
+    };
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Generate a realistic TikTok-style user profile for the username: ${username}. 
+      The profile should include a display name, a profile picture URL (use picsum.photos), and a follower count.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            username: { type: Type.STRING },
+            displayName: { type: Type.STRING },
+            profilePicture: { type: Type.STRING },
+            followerCount: { type: Type.NUMBER },
+          },
+          required: ["username", "displayName", "profilePicture", "followerCount"],
+        },
+      },
+    });
+
+    const profile = JSON.parse(response.text || "{}") as UserProfile;
+    
+    // Ensure the profile picture is a valid picsum URL if not already
+    if (!profile.profilePicture.startsWith("http")) {
+      profile.profilePicture = `https://picsum.photos/seed/${username}/200`;
+    }
+
+    return profile;
+  } catch (error) {
+    console.error("Error searching user profile:", error);
+    // Fallback profile
+    return {
+      username: username,
+      displayName: username.charAt(0).toUpperCase() + username.slice(1),
+      profilePicture: `https://picsum.photos/seed/${username}/200`,
+      followerCount: Math.floor(Math.random() * 100000),
+    };
+  }
+}
