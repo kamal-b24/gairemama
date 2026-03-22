@@ -27,10 +27,13 @@ async function setupApp() {
     // Production / Vercel
     // Note: In Vercel, static files are usually served via vercel.json routes
     // but we keep this as a fallback.
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.resolve(__dirname, 'dist');
+    console.log(`Serving static files from: ${distPath}`);
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      console.log(`Serving index.html from: ${indexPath}`);
+      res.sendFile(indexPath);
     });
   }
 }
@@ -44,15 +47,18 @@ if (!process.env.VERCEL) {
   });
 } else {
   // On Vercel, we only need the production static serving
-  const distPath = path.join(process.cwd(), 'dist');
+  const distPath = path.resolve(__dirname, 'dist');
+  console.log(`Vercel mode: Serving static files from: ${distPath}`);
   app.use(express.static(distPath));
   
   // Only handle routes that aren't static files
   app.get('*', (req, res) => {
     const indexPath = path.join(distPath, 'index.html');
     if (fs.existsSync(indexPath)) {
+      console.log(`Vercel mode: Found index.html at: ${indexPath}`);
       res.sendFile(indexPath);
     } else {
+      console.error(`Vercel mode: index.html NOT FOUND at: ${indexPath}`);
       res.status(404).send('Not Found: index.html is missing. Please check the build process.');
     }
   });

@@ -1,7 +1,20 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    // If apiKey is "undefined" (from Vite define) or missing, we handle it
+    if (!apiKey || apiKey === "undefined") {
+      console.warn("GEMINI_API_KEY is missing. Using fallback mode.");
+      return null;
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
 
 export async function searchUserProfile(username: string): Promise<UserProfile> {
   // Demo mode for testing without API key if needed
@@ -23,6 +36,9 @@ export async function searchUserProfile(username: string): Promise<UserProfile> 
 
   const apiPromise = (async () => {
     try {
+      const ai = getAI();
+      if (!ai) return localFallback;
+
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Generate a realistic TikTok-style user profile for the username: ${username}. 
