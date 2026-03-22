@@ -41,9 +41,12 @@ export async function searchUserProfile(username: string): Promise<UserProfile> 
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Generate a realistic TikTok-style user profile for the username: ${username}. 
-        The profile should include a display name, a profile picture URL (use picsum.photos), and a follower count.`,
+        contents: `Find the real TikTok profile information for the username: ${username}. 
+        Search the web to find their actual display name, their real follower count, and a valid URL to their profile picture.
+        If you cannot find the exact profile, find the most likely match or return the most accurate data available.
+        Return the data in the specified JSON format.`,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
