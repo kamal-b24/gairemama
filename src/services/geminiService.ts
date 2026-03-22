@@ -34,6 +34,17 @@ export async function searchUserProfile(username: string): Promise<UserProfile> 
     followerCount: Math.floor(Math.random() * 100000),
   };
 
+  // Try RapidAPI via our server proxy first
+  try {
+    const response = await fetch(`/api/tiktok/user/${username}`);
+    if (response.ok) {
+      const data = await response.json();
+      return data as UserProfile;
+    }
+  } catch (error) {
+    console.error("RapidAPI proxy failed, falling back to Gemini:", error);
+  }
+
   const apiPromise = (async () => {
     try {
       const ai = getAI();

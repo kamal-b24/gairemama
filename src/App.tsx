@@ -173,7 +173,16 @@ export default function App() {
                     </div>
                     <div className="ml-2 flex-1 min-w-0">
                       <p className="font-bold text-[11px] text-gray-900 truncate leading-tight">{searchedProfile.displayName}</p>
-                      <p className="text-[10px] text-gray-500 truncate leading-tight">@{searchedProfile.username}</p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-[10px] text-gray-500 truncate leading-tight">@{searchedProfile.username}</p>
+                        <span className="text-[9px] font-bold text-yellow-600 bg-yellow-100 px-1 rounded">
+                          {searchedProfile.followerCount >= 1000000 
+                            ? `${(searchedProfile.followerCount / 1000000).toFixed(1)}M` 
+                            : searchedProfile.followerCount >= 1000 
+                              ? `${(searchedProfile.followerCount / 1000).toFixed(1)}K` 
+                              : searchedProfile.followerCount}
+                        </span>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -298,7 +307,16 @@ export default function App() {
                     />
                     <div className="min-w-0">
                       <p className="font-bold text-gray-900 truncate">{searchedProfile.displayName}</p>
-                      <p className="text-xs text-gray-500 truncate">@{searchedProfile.username}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-gray-500 truncate">@{searchedProfile.username}</p>
+                        <span className="text-[10px] font-bold text-yellow-600 bg-yellow-100 px-1.5 rounded-full">
+                          {searchedProfile.followerCount >= 1000000 
+                            ? `${(searchedProfile.followerCount / 1000000).toFixed(1)}M` 
+                            : searchedProfile.followerCount >= 1000 
+                              ? `${(searchedProfile.followerCount / 1000).toFixed(1)}K` 
+                              : searchedProfile.followerCount} followers
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
