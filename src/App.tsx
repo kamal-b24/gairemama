@@ -61,7 +61,7 @@ export default function App() {
       } else {
         setSearchedProfile(null);
       }
-    }, 600); // 600ms debounce
+    }, 300); // Reduced to 300ms for faster response
 
     return () => clearTimeout(timer);
   }, [recipientUsername, handleSearch]);
