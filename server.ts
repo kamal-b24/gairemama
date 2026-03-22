@@ -1,7 +1,7 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +17,7 @@ app.get("/api/health", (req, res) => {
 async function setupApp() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -24,6 +25,8 @@ async function setupApp() {
     app.use(vite.middlewares);
   } else {
     // Production / Vercel
+    // Note: In Vercel, static files are usually served via vercel.json routes
+    // but we keep this as a fallback.
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
@@ -43,8 +46,15 @@ if (!process.env.VERCEL) {
   // On Vercel, we only need the production static serving
   const distPath = path.join(process.cwd(), 'dist');
   app.use(express.static(distPath));
+  
+  // Only handle routes that aren't static files
   app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Not Found: index.html is missing. Please check the build process.');
+    }
   });
 }
 
