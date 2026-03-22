@@ -42,7 +42,38 @@ export async function searchUserProfile(username: string): Promise<UserProfile> 
       return data as UserProfile;
     }
   } catch (error) {
-    console.error("RapidAPI proxy failed, falling back to Gemini:", error);
+    console.warn("Server proxy failed, trying direct client-side call (Netlify/Vercel mode)...");
+  }
+
+  // Fallback: Try direct client-side call (useful for Netlify/Vercel static deployments)
+  const clientApiKey = import.meta.env.VITE_RAPIDAPI_KEY;
+  const clientApiHost = import.meta.env.VITE_RAPIDAPI_HOST || "tiktok-scraper7.p.rapidapi.com";
+
+  if (clientApiKey) {
+    try {
+      const response = await fetch(`https://${clientApiHost}/user/info?unique_id=${username}`, {
+        headers: {
+          "x-rapidapi-key": clientApiKey,
+          "x-rapidapi-host": clientApiHost,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.code === 0 && data.data) {
+          const user = data.data.user;
+          const stats = data.data.stats;
+          return {
+            username: user.uniqueId,
+            displayName: user.nickname,
+            profilePicture: user.avatarLarger || user.avatarMedium || user.avatarThumb,
+            followerCount: stats.followerCount,
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Direct TikTok API call failed:", error);
+    }
   }
 
   const apiPromise = (async () => {
